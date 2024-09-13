@@ -1,5 +1,9 @@
 # rusty-chunkenc
 
+[![Crates.io](https://img.shields.io/crates/v/rusty-chunkenc.svg)](<https://crates.io/crates/rusty-chunkenc>)
+[![Documentation](https://docs.rs/rusty-chunkenc/badge.svg)](https://docs.rs/rusty-chunkenc)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 A Rust implementation of Prometheus' [`chunkenc`](https://pkg.go.dev/github.com/prometheus/prometheus/tsdb/chunkenc) library.
 
 ## Features
