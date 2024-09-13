@@ -2,6 +2,10 @@ use nom::{bytes::complete::tag, multi::many1, sequence::tuple, IResult};
 
 use crate::chunk::{read_chunk, Chunk};
 
+/// A Prometheus chunks disk format.
+///
+/// It contains a version number, always 1 for now, and a list of chunks.
+#[derive(Debug)]
 pub struct ChunksDiskFormat {
     version: u8,
     chunks: Vec<Chunk>,
@@ -10,10 +14,25 @@ pub struct ChunksDiskFormat {
 }
 
 impl ChunksDiskFormat {
+    /// Creates a new chunks disk format with the given chunks and file index.
+    ///
+    /// The file index is used to compute the chunk references.
+    /// Set it to None if you don't use the chunk references.
+    pub fn new(chunks: Vec<Chunk>, file_index: Option<u64>) -> Self {
+        Self {
+            version: 1,
+            chunks,
+            file_index,
+            addr: None,
+        }
+    }
+
+    /// Returns the version number of the chunks disk format (always 1).
     pub fn version(&self) -> u8 {
         self.version
     }
 
+    /// Returns the chunks.
     pub fn chunks(&self) -> &[Chunk] {
         &self.chunks
     }
@@ -41,7 +60,15 @@ impl ChunksDiskFormat {
     }
 }
 
-pub fn read_chunks_disk_format(input: &[u8]) -> IResult<&[u8], ChunksDiskFormat> {
+impl PartialEq for ChunksDiskFormat {
+    fn eq(&self, other: &Self) -> bool {
+        self.version == other.version
+            && self.chunks == other.chunks
+            && self.file_index == other.file_index
+    }
+}
+
+fn read_chunks_disk_format(input: &[u8]) -> IResult<&[u8], ChunksDiskFormat> {
     let (remaining_input, (_, mut chunks_disk_format)) = tuple((
         // Chunks on disk start with 0x85BD40DD
         tag([0x85, 0xBD, 0x40, 0xDD]),
@@ -53,7 +80,7 @@ pub fn read_chunks_disk_format(input: &[u8]) -> IResult<&[u8], ChunksDiskFormat>
     Ok((remaining_input, chunks_disk_format))
 }
 
-pub fn read_version_one(input: &[u8]) -> IResult<&[u8], ChunksDiskFormat> {
+fn read_version_one(input: &[u8]) -> IResult<&[u8], ChunksDiskFormat> {
     let (remaining_input, (_, _, chunks)) = tuple((
         // Read the version byte, that is 1
         tag([1u8]),
@@ -74,9 +101,17 @@ pub fn read_version_one(input: &[u8]) -> IResult<&[u8], ChunksDiskFormat> {
     ))
 }
 
-pub fn read_chunks(file_index: u64, input: &[u8]) -> IResult<&[u8], ChunksDiskFormat> {
+/// Reads the chunks disk format from the input data.
+///
+/// The file index is used to compute the chunk references.
+/// Set it to None, if you don't use the chunk references.
+///
+/// It returns the remaining input data and the chunks disk format.
+pub fn read_chunks(input: &[u8], file_index: Option<u64>) -> IResult<&[u8], ChunksDiskFormat> {
     let (remaining_input, mut chunks_disk_format) = read_chunks_disk_format(input)?;
-    chunks_disk_format.set_file_index(file_index);
+    if let Some(file_index) = file_index {
+        chunks_disk_format.set_file_index(file_index);
+    }
     chunks_disk_format.compute_chunk_refs();
     Ok((remaining_input, chunks_disk_format))
 }

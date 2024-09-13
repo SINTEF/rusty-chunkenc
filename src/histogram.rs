@@ -2,7 +2,7 @@ use nom::IResult;
 
 use crate::chunk::ChunkWithBlockChunkRef;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct HistogramChunk {}
 
 impl ChunkWithBlockChunkRef for HistogramChunk {
@@ -18,7 +18,7 @@ pub fn read_histogram_chunk_data(input: &[u8]) -> IResult<&[u8], HistogramChunk>
     Ok((input, HistogramChunk {}))
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FloatHistogramChunk {}
 
 impl ChunkWithBlockChunkRef for FloatHistogramChunk {

@@ -1,3 +1,7 @@
+//! Prometheus' varbit encoding.
+//!
+//! The writers are not implemented yet as they are only
+//! used in histograms, that are not implemented yet.
 use nom::{
     bits::complete::{bool, take},
     IResult,
@@ -44,6 +48,7 @@ fn varbit_bucket_to_num_bits(bucket: u8) -> u8 {
     }
 }
 
+/// Reads a Prometheus varbit-encoded integer from the input.
 pub fn read_varbit_int(input: NomBitInput) -> IResult<NomBitInput, i64> {
     let (remaining_input, bucket) = read_varbit_int_bucket(input)?;
     let num_bits = varbit_bucket_to_num_bits(bucket);
@@ -61,6 +66,7 @@ pub fn read_varbit_int(input: NomBitInput) -> IResult<NomBitInput, i64> {
     Ok((remaining_input, value))
 }
 
+/// Reads a Prometheus varbit-encoded unsigned integer from the input.
 pub fn read_varbit_uint(input: NomBitInput) -> IResult<NomBitInput, u64> {
     let (remaining_input, bucket) = read_varbit_int_bucket(input)?;
     let num_bits = varbit_bucket_to_num_bits(bucket);

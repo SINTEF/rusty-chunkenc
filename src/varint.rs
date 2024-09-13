@@ -2,6 +2,9 @@ use nom::IResult;
 
 use crate::uvarint::read_uvarint;
 
+pub use crate::encoder::varint_encoder::write_varint;
+
+/// Parses a Golang varint.
 pub fn read_varint(input: &[u8]) -> IResult<&[u8], i64> {
     let (remaining_input, uvarint_value) = read_uvarint(input)?;
 
@@ -16,34 +19,6 @@ pub fn read_varint(input: &[u8]) -> IResult<&[u8], i64> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    /*#[test]
-    fn test_with_golangs_test_values() {
-        const TEST_VALUES: [i64; 18] = [
-            -1 << 63,
-            //(-1 << 63) + 1,
-            i64::MIN,
-            -1,
-            0,
-            1,
-            2,
-            10,
-            20,
-            63,
-            64,
-            65,
-            127,
-            128,
-            129,
-            255,
-            256,
-            257,
-            //(1 << 63) - 1,
-            i64::MAX,
-        ];
-
-        for value in TEST_VALUES {
-    }*/
 
     #[test]
     fn test_with_boring_values() {

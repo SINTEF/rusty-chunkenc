@@ -1,5 +1,8 @@
 use nom::{bytes::complete::take, IResult};
 
+pub use crate::encoder::uvarint_encoder::write_uvarint;
+
+/// Parses a Golang uvarint.
 pub fn read_uvarint(input: &[u8]) -> IResult<&[u8], u64> {
     let mut input_pointer = input;
     let mut x: u64 = 0;

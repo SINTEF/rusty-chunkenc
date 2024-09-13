@@ -2,12 +2,32 @@
 name = "rusty-chunkenc"
 version = "0.1.0"
 edition = "2021"
+description = "A Rust implementation of Prometheus' chunkenc library"
+license = "Apache-2.0"
+keywords = ["prometheus", "chunkenc", "encoding", "time-series", "gorilla"]
+documentation = "https://docs.rs/rusty-chunkenc"
+authors = ["Antoine Pultier <antoine.pultier@sintef.no>"]
+repository = "https://github.com/sintef/rusty-chunkenc"
+include = [
+  "README.md",
+  "LICENSE",
+  "src/*.rs",
+  "src/**/*.rs",
+  "Cargo.toml",
+  "Cargo.lock",
+]
 
 [dependencies]
-base64 = "0.22"
 nom = "7.1"
+crc32c = "0.6"
+xxhash-rust = { version = "0.8", features = ["xxh64"] }
+thiserror = "1.0"
+bitstream-io = "2.5"
+smallvec = { version = "2.0.0-alpha.7", features = ["std"] }
+
+[dev-dependencies]
+base64 = "0.22"
 once_cell = "1.19"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-crc32c = "0.6"
-xxhash-rust = { version = "0.8", features = ["xxh64"] }
+rand = "0.8"

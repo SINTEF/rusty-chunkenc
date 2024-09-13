@@ -15,27 +15,33 @@ use crate::{
         HistogramChunk,
     },
     uvarint::read_uvarint,
-    xor::{read_xor_chunk_data, XORChunk},
+    xor::{read_xor_chunk_data, XORChunk, XORSample},
 };
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub enum ChunkType {
+pub(crate) enum ChunkType {
+    #[allow(clippy::upper_case_acronyms)]
     XOR,
     Histogram,
     FloatHistogram,
 }
 
-pub struct ChunkHeader {
+struct ChunkHeader {
     chunk_size: u64,
     chunk_type: ChunkType,
 }
 
-pub trait ChunkWithBlockChunkRef {
+pub(crate) trait ChunkWithBlockChunkRef {
     fn block_chunk_ref(&self) -> Option<u64>;
     fn compute_block_chunk_ref(&mut self, file_index: u64, chunks_addr: *const u8);
 }
 
-#[derive(Debug)]
+/// A Prometheus chunk.
+///
+/// It can be a XOR chunk, a histogram chunk, or a float histogram chunk.
+///
+/// For now, only the XOR chunk type is fully implemented.
+#[derive(Debug, PartialEq)]
 pub enum Chunk {
     XOR(XORChunk),
     Histogram(HistogramChunk),
@@ -43,6 +49,20 @@ pub enum Chunk {
 }
 
 impl Chunk {
+    /// Creates a Chunk of type XOR.
+    pub fn new_xor(samples: Vec<XORSample>) -> Self {
+        Self::XOR(XORChunk::new(samples))
+    }
+
+    /// Returns the XOR chunk if it's a XOR chunk.
+    pub fn as_xor(self) -> Option<XORChunk> {
+        match self {
+            Chunk::XOR(xor_chunk) => Some(xor_chunk),
+            _ => None,
+        }
+    }
+
+    /// Retuns the block chunk reference.
     pub fn block_chunk_ref(&self) -> Option<u64> {
         match self {
             Chunk::XOR(xor_chunk) => xor_chunk.block_chunk_ref(),
@@ -51,7 +71,7 @@ impl Chunk {
         }
     }
 
-    pub fn compute_chunk_ref(&mut self, file_index: u64, chunks_addr: *const u8) {
+    pub(crate) fn compute_chunk_ref(&mut self, file_index: u64, chunks_addr: *const u8) {
         match self {
             Chunk::XOR(xor_chunk) => {
                 xor_chunk.compute_block_chunk_ref(file_index, chunks_addr);
@@ -66,7 +86,7 @@ impl Chunk {
     }
 }
 
-pub fn read_chunk_type(input: &[u8]) -> IResult<&[u8], ChunkType> {
+fn read_chunk_type(input: &[u8]) -> IResult<&[u8], ChunkType> {
     alt((
         value(ChunkType::XOR, tag([1u8])),
         value(ChunkType::Histogram, tag([2u8])),
@@ -74,7 +94,7 @@ pub fn read_chunk_type(input: &[u8]) -> IResult<&[u8], ChunkType> {
     ))(input)
 }
 
-pub fn read_chunk_header(input: &[u8]) -> IResult<&[u8], ChunkHeader> {
+fn read_chunk_header(input: &[u8]) -> IResult<&[u8], ChunkHeader> {
     let (remaining_input, (chunk_size, chunk_type)) =
         tuple((read_uvarint, read_chunk_type))(input)?;
 
@@ -87,7 +107,7 @@ pub fn read_chunk_header(input: &[u8]) -> IResult<&[u8], ChunkHeader> {
     ))
 }
 
-pub fn parse_chunk_data(
+fn parse_chunk_data(
     addr: *const u8,
     chunk_type: ChunkType,
     chunk_data: &[u8],
@@ -113,6 +133,9 @@ pub fn parse_chunk_data(
     }
 }
 
+/// Reads a chunk from the input data.
+///
+/// Returns the remaining input data and the chunk.
 pub fn read_chunk(input: &[u8]) -> IResult<&[u8], Chunk> {
     let addr = input.as_ptr();
 

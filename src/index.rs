@@ -3,11 +3,13 @@ use std::num::NonZeroUsize;
 use nom::{branch::alt, bytes::complete::tag, sequence::tuple, IResult};
 
 use crate::{
+    errors::RustyChunkEncError,
     series::{read_series, Serie},
     symbol_table::read_symbol_table,
     toc::read_toc_at_end,
 };
 
+#[derive(Debug)]
 pub struct IndexDiskFormat {
     series: Vec<Serie>,
 }
@@ -80,7 +82,7 @@ fn read_simple_sections(input: &[u8]) -> IResult<&[u8], IndexDiskFormat> {
     let series_finalised: Vec<Serie> = series
         .into_iter()
         .map(|s| s.finalise(&symbols))
-        .collect::<Result<Vec<Serie>, ()>>()
+        .collect::<Result<Vec<Serie>, RustyChunkEncError>>()
         .map_err(|_| {
             nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify))
         })?;

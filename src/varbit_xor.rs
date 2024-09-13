@@ -5,6 +5,8 @@ use nom::{
 
 use crate::NomBitInput;
 
+pub use crate::encoder::varbit_xor_encoder::write_varbit_xor;
+
 fn read_leading_bits_count(input: NomBitInput) -> IResult<NomBitInput, u8> {
     // The leading bits count is 5 bits long.
     take(5usize)(input)
@@ -26,6 +28,11 @@ fn read_middle_bits_count(input: NomBitInput) -> IResult<NomBitInput, u8> {
     Ok((remaining_input, middle_bits_count))
 }
 
+/// Reads a Prometheus varbit xor encoded number from the input.
+///
+/// The first time it is called, use 0 for both leading and trailing bits count.
+///
+/// It returns the new value, and also the new leading and trailing bits count.
 pub fn read_varbit_xor<'a>(
     previous_value: f64,
     previous_leading_bits_count: u8,

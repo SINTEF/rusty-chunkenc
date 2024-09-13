@@ -5,6 +5,8 @@ use nom::{
 
 use crate::NomBitInput;
 
+pub use crate::encoder::varbit_ts_encoder::write_varbit_ts;
+
 /// Reads a varbit-encoded integer from the input.
 ///
 /// Prometheus' varbitint starts with a bucket category of variable length.
@@ -40,6 +42,7 @@ fn varbit_ts_bucket_to_num_bits(bucket: u8) -> u8 {
     }
 }
 
+/// Reads a Prometheus varbit timestamp encoded number from the input.
 pub fn read_varbit_ts(input: NomBitInput) -> IResult<NomBitInput, i64> {
     let (remaining_input, bucket) = read_varbit_ts_bucket(input)?;
     let num_bits = varbit_ts_bucket_to_num_bits(bucket);

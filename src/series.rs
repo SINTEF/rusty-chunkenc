@@ -10,6 +10,7 @@ use nom::{
 
 use crate::{
     crc32c::{assert_crc32c_on_data, read_crc32c},
+    errors::RustyChunkEncError,
     uvarint::read_uvarint,
     varint::read_varint,
 };
@@ -43,7 +44,7 @@ pub struct SerieTmp {
 }
 
 impl SerieTmp {
-    pub fn finalise(self, symbols: &[String]) -> Result<Serie, ()> {
+    pub fn finalise(self, symbols: &[String]) -> Result<Serie, RustyChunkEncError> {
         let labels = self
             .labels
             .into_iter()
@@ -53,10 +54,11 @@ impl SerieTmp {
                 if let (Some(name), Some(value)) = (name, value) {
                     Ok((name.clone(), value.clone()))
                 } else {
-                    Err(())
+                    Err(RustyChunkEncError::IncorrectIndexData())
                 }
             })
-            .collect::<Result<BTreeMap<String, String>, ()>>()?;
+            .collect::<Result<BTreeMap<String, String>, RustyChunkEncError>>()?;
+
         Ok(Serie {
             labels,
             chunks: self.chunks,

@@ -11,6 +11,12 @@ use crate::{
 };
 use crate::{varbit_ts::read_varbit_ts, NomBitInput};
 
+/// A Prometheus XOR chunk.
+///
+/// A XOR chunk consists of a list of timestamp-value pairs.
+/// The timestamps are sorted by increasing order.
+///
+/// It is serialised using a format heavily inspired by [Gorilla](https://www.vldb.org/pvldb/vol8/p1816-teller.pdf).
 #[derive(Debug)]
 pub struct XORChunk {
     samples: Vec<XORSample>,
@@ -33,24 +39,42 @@ impl ChunkWithBlockChunkRef for XORChunk {
     }
 }
 
+impl PartialEq for XORChunk {
+    fn eq(&self, other: &Self) -> bool {
+        self.samples == other.samples
+    }
+}
+
 impl XORChunk {
-    pub fn set_addr(&mut self, addr: *const u8) {
+    /// Creates a new XOR chunk with the given samples.
+    pub fn new(samples: Vec<XORSample>) -> Self {
+        Self {
+            samples,
+            block_chunk_ref: None,
+            addr: None,
+        }
+    }
+
+    /// Sets the memory address of the chunk.
+    pub(crate) fn set_addr(&mut self, addr: *const u8) {
         self.addr = Some(addr);
     }
 
+    /// Returns the samples of the chunk.
     pub fn samples(&self) -> &[XORSample] {
         &self.samples
     }
 }
 
-#[derive(Debug)]
+/// A sample of a Prometheus XOR chunk.
+#[derive(Debug, Clone, PartialEq)]
 pub struct XORSample {
     pub timestamp: i64,
     pub value: f64,
 }
 
 #[derive(Debug)]
-pub struct XORIterator {
+struct XORWriteIterator {
     pub timestamp: i64,
     pub value: f64,
     pub leading_bits_count: u8,
@@ -58,15 +82,15 @@ pub struct XORIterator {
     pub timestamp_delta: u64,
 }
 
-pub fn read_first_sample(input: &[u8]) -> IResult<&[u8], XORSample> {
+fn read_first_sample(input: &[u8]) -> IResult<&[u8], XORSample> {
     let (remaining_input, (timestamp, value)) = tuple((read_varint, be_f64))(input)?;
     Ok((remaining_input, XORSample { timestamp, value }))
 }
 
-pub fn read_second_sample<'a>(
+fn read_second_sample<'a>(
     first_timestamp: i64,
     first_value: f64,
-) -> impl Fn(NomBitInput<'a>) -> IResult<NomBitInput<'a>, XORIterator> {
+) -> impl Fn(NomBitInput<'a>) -> IResult<NomBitInput<'a>, XORWriteIterator> {
     move |input: NomBitInput<'a>| {
         let (
             remaining_input,
@@ -83,7 +107,7 @@ pub fn read_second_sample<'a>(
 
         Ok((
             remaining_input,
-            XORIterator {
+            XORWriteIterator {
                 timestamp,
                 value,
                 leading_bits_count: new_leading_bits_count,
@@ -94,9 +118,9 @@ pub fn read_second_sample<'a>(
     }
 }
 
-pub fn read_n_sample<'a>(
-    previous_iterator: &XORIterator,
-) -> impl Fn(NomBitInput<'a>) -> IResult<NomBitInput<'a>, XORIterator> {
+fn read_n_sample<'a>(
+    previous_iterator: &XORWriteIterator,
+) -> impl Fn(NomBitInput<'a>) -> IResult<NomBitInput<'a>, XORWriteIterator> {
     let previous_timestamp = previous_iterator.timestamp;
     let previous_value = previous_iterator.value;
     let previous_leading_bits_count = previous_iterator.leading_bits_count;
@@ -121,7 +145,7 @@ pub fn read_n_sample<'a>(
 
         Ok((
             remaining_input,
-            XORIterator {
+            XORWriteIterator {
                 timestamp,
                 value,
                 leading_bits_count: new_leading_bits_count,
@@ -173,6 +197,13 @@ fn read_following_samples<'a>(
     }
 }
 
+/// Reads a XOR chunk from the input data.
+///
+/// Please note that this function does not read the chunk header
+/// nor does it check the CRC32C checksum.
+///
+/// Use the `read_chunk` function if your XOR chunk comes with a header
+/// and a CRC32C checksum.
 pub fn read_xor_chunk_data(input: &[u8]) -> IResult<&[u8], XORChunk> {
     let (remaining_input, (num_samples, first_sample)) = tuple((be_u16, read_first_sample))(input)?;
 
@@ -197,6 +228,8 @@ pub fn read_xor_chunk_data(input: &[u8]) -> IResult<&[u8], XORChunk> {
 
 #[cfg(test)]
 mod tests {
+    use crate::encoder::uvarint_encoder::write_uvarint;
+
     use super::*;
 
     #[test]
@@ -215,5 +248,17 @@ mod tests {
         assert_eq!(chunk.samples.len(), 1);
         assert_eq!(chunk.samples[0].timestamp, 7200000);
         assert_eq!(chunk.samples[0].value, 12000.0);
+    }
+
+    #[test]
+    fn test_too_big_timestamp_difference() {
+        // create a broken chunk
+        let mut buffer = Vec::new();
+        write_uvarint(u64::MAX, &mut buffer).unwrap();
+        // Append a zero for the xor bit, so it reuses the previous value
+        buffer.push(0);
+
+        let error = read_second_sample(0, 42.0)((&buffer, 0)).unwrap_err();
+        assert!(error.to_string().contains("TooLarge"),);
     }
 }
