@@ -249,7 +249,7 @@ It is not the most compact encoding for big and small numbers, but it's suitable
 
 Numbers that can be negative are a bit tricky. Most computers use a two's complement representation to store negative numbers. Without going into details, your computer likely represents the number -1 like this in binary: `1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111`. This is not good. There are way too many significant bits for such a small number.
 
-The `varint` encoding uses a trick called [zigzag encoding](https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding). It multiplies the numbers by two. Positive numbers are even, and negative numbers are made positive using their absolute value and substracted one to become odd. Finally, it uses the `uvarint` encoding to store the numbers, which are now all positive. Going the other way around is similar. It divides the number by two. If the rest of the division is 1, the number is made negative by multiplying it by -1.
+The `varint` encoding uses a trick called [zigzag encoding](https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding). It multiplies the numbers by two. Positive numbers are even, and negative numbers are made positive using their absolute value and substracted one to become odd. Finally, it uses the `uvarint` encoding to store the numbers, which are now all positive. Going the other way around is similar. It divides the number by two. If the remainder of the division is 1, the number is made negative by multiplying it by -1.
 
 Small negative numbers can also be stored more compactly, thanks to the zigzag encoding.
 
