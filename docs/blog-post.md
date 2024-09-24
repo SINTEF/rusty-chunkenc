@@ -21,7 +21,7 @@ Prometheus has a [remote read API](https://prometheus.io/docs/prometheus/latest/
 
 ## How I Found the Bug
 
-This article will discuss `0` and `1` in computers. It's going to be a bit technical, but I hope it should still be understandable by most.
+This article will discuss `0` and `1` in computers. It's going to be a bit technical, but I hope it's still be understandable by most.
 
 ### The Prometheus Remote Read API Supports an Easy Format
 
@@ -44,9 +44,9 @@ XOR chunks are a bit complicated, to be honest. It's not extreme, but it is the 
 
 ### Variable Length Encodings Save Bits
 
-Usually, people decide in advance how many bits they need to represent their numbers in computers. For example, 8 bits is enough to represent a number between 0 and 255 or -128 and 127. If the software encounters bigger numbers, you go with more bits. The industry uses on 64 bits by default for now, representing whole numbers between -9,223,372,036,854,775,808 and 9,223,372,036,854,775,807, or 18 quintillion different numbers. It's often more than enough. Not always.
+Usually, people decide in advance how many bits they need to represent their numbers in computers. For example, 8 bits is enough to represent a number between 0 and 255 or -128 and 127. If the software encounters bigger numbers, you go with more bits. The industry uses 64 bits by default for now, representing whole numbers between -9,223,372,036,854,775,808 and 9,223,372,036,854,775,807, or 18 quintillion different numbers. It's often more than enough. Not always.
 
-Prometheus uses 64 bits numbers internally, but instead of always using 64 bits to store the data, Prometheus also uses variable length encodings. The number of stored bits will depend on the value. Bigger numbers will use more bits than small numbers. In practice, Prometheus' numbers use much fewer than 64 bits. But it sometimes uses more than 64 bits for the bigger numbers.
+Prometheus uses 64 bits numbers internally, but instead of always using 64 bits to store the data, Prometheus also uses variable length encodings. The number of stored bits will depend on the value. Big numbers will use more bits than small numbers. In practice, Prometheus' numbers use much fewer than 64 bits. But it sometimes uses more than 64 bits for the big numbers.
 
 Prometheus uses a neat collection of variable encoding formats. Namely `varint`, `uvarint`, `varbit`, `varbit_ts`, and `varbit_xor`. And I had fun implementing them all, no sarcasm.
 
@@ -67,7 +67,7 @@ As an example, here is **42** encoded with the various number encoding formats f
 
 ### By the Way, IEEE 754 Floating Point Numbers Are Weird
 
-Computers deal with not only whole numbers but decimal numbers, too. Representing decimal numbers with 0 and 1 bits is possible. It used to be a mess as people did represent those numbers differently, but eventually, people and computers adopted the [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754). The wide adoption is a good success story. If you like reading about computer standards, you can [purchase the standard for *only* $106.00](https://standards.ieee.org/ieee/754/6210/). It is not the focus of this article, but it's important to know something: IEEE 754 decimal numbers are **weird**.
+Computers deal with not only whole numbers but also decimal numbers. Representing decimal numbers with 0 and 1 bits is possible. It used to be a mess as people did represent those numbers differently, but eventually, people and computers adopted the [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754). The wide adoption is a good success story. If you like reading about computer standards, you can [purchase the standard for *only* $106.00](https://standards.ieee.org/ieee/754/6210/). It is not the focus of this article, but it's important to know something: IEEE 754 decimal numbers are **weird**.
 
 The approximate maximum value of a 64 bits IEEE 754 number is `1.7976931348623157e308`. It's a huge number, much bigger than `9,223,372,036,854,775,807`, the maximum value of a whole number using the same amount of bits.
 
