@@ -1,4 +1,4 @@
-# Every bit counts, a journey into Prometheus' binary data
+# Every Bit Counts, a Journey Into Prometheus' Binary Data
 
 It was day five of what I thought would be a fun two-day side project, and I had identified a small bug. Was my code wrong, or the original code running on millions of computers for years wrong? I blamed my code, it's almost always my code. However, after too many hours of debugging, I eventually found the bug in the original code.
 
