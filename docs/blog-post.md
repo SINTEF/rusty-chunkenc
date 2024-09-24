@@ -417,7 +417,7 @@ We only looked at the XOR chunks in this article. The histogram chunks are an "e
 
 The [Cyclic Redundancy Check](https://en.wikipedia.org/wiki/Cyclic_redundancy_check) is used to ensure the data integrity. It uses the Castagnoli polynomial, a more modern polynomial than the classic CRC32 polynomial. The CRC32 checksum is stored in big-endian, as it should be.
 
-Having checksums in a data format is a good idea. Unless you know what Btrfs or ZFS are and use them, your computer likely doesn't detect nor prevent the corruption of your stored data. It's another thing that will look wild for us in the future.
+Having checksums in a data format is a good idea. Unless you know what Btrfs or ZFS are and use them, your operating system likely doesn't detect nor prevent the corruption of your stored data. It's another thing that will look wild for us in the future.
 
 ### Prometheus XOR Chunk
 
