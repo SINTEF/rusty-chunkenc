@@ -189,7 +189,9 @@ It's challenging to precisely estimate the impact of such a fix. I haven't done 
 ![A Blue-Ray disc and a Floppy disc.](./floppy.webp)
 I roughly estimate that the fix saved some big cloud providers the equivalent storage size of one Blue-Ray disc, and most companies the equivalent storage size of one Floppy disc.
 
-The bug occurs when Prometheus stores n bits where n is a multiple of 8 and when the previously stored bits count is also a multiple of 8. If we have a uniform distribution, it's 1/8 * 1/8 = 1/64 of the time. We can say it's a byte saved in about 1% of the Prometheus data chunks. It matches my observations.
+The bug occurs when both the bit size of the last encoded value to be stored and the number of already stored bits are multiples of 8.
+
+If we have a uniform distribution, it's 1/8 * 1/8 = 1/64 of the time. We can say it's a byte saved in about 1% of the Prometheus data chunks. It matches my observations.
 
 Prometheus has many data chunks, as a chunk usually contains [only 120 samples](https://github.com/prometheus/prometheus/blob/faf5ba29bade4d2483b491013363fddfbc301def/storage/series.go#L285). How many chunks are stored per Prometheus instance on average, and how many Prometheus instances are running worldwide? I don't know.
 
