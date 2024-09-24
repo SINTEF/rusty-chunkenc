@@ -201,7 +201,7 @@ The [2023 Survey of the Cloud Native Computing Foundation (CNCF)](https://www.cn
 
 [A Standford magazine article](https://stanfordmag.org/contents/carbon-and-the-cloud) estimates the environmental footprint of 100GB stored in the cloud at about 200kg of CO₂ per year.
 
-That's also a conservative number. We know that [CloudFlare has about 5 billion time series](https://blog.cloudflare.com/how-cloudflare-runs-prometheus-at-scale/), and the fix may save them about 50 gigabytes.
+That's also a conservative number. We know that [CloudFlare has about 5 billion time series](https://blog.cloudflare.com/how-cloudflare-runs-prometheus-at-scale/), and the fix may save them about 50 gigabytes. They are likely not alone to use Prometheus at large scale.
 
 It's also a wild guess with many assumptions and uncertainties. We didn't consider that many chunks are read at frequent intervals, potentially over the network. Estimating CO₂ emissions of software in the cloud [is a complex topic](https://www.cloudcarbonfootprint.org/docs/methodology).
 
