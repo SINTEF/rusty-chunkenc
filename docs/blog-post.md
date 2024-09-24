@@ -515,6 +515,7 @@ Overall, I think Prometheus is efficient, fast, and successful because it cares
 This would never have happened if Prometheus was a closed-source software. The open-source community is doing a great job with Prometheus, and I'm happy to have contributed a tiny bit to it.
 
 ![XKCD #2347 variant](./xkcd.webp)
+*[XKCD #2347](https://xkcd.com/2347/) adaptation, CC BY-NC 2.5.*
 
 Damian Gryski wrote the original Golang XOR chunk implementation, and [he commented in the bug fix pull request](https://github.com/prometheus/prometheus/pull/14854#issuecomment-2341429038): "I implemented the original paper in a weekend for fun, more or less."
 
