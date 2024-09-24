@@ -524,3 +524,7 @@ Before reading his comment, I had estimated about two days of work for my XOR ch
 ## Finally, Let me Talk About our Sponsors
 
 This work is conducted within the [Smart Building Hub](https://smartbuildinghub.no/) research infrastructure project, which is funded by the [Norwegian Research Council](https://www.forskningsradet.no/). This is public Norwegian funding, and even if you are not paying taxes in Norway, you indirectly support this project thanks to our world's dependency on oil and gas. Thank you!
+
+---
+
+Antoine Pultier – 2024-09-24 – SBHub Project.
