@@ -73,7 +73,7 @@ The approximate maximum value of a 64 bits IEEE 754 number is `1.797693134862315
 
 The trick is to not give a fuck about accuracy. For example, most computers say that [9,007,199,254,740,99**2**.0 equals 9,007,199,254,740,99**3**.0](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER) and it is mostly fine. It's within the specifications of the IEEE 754 standard.
 
-Software developers know Floating point numbers shenanigans, but scientists working with time-series datasets are not always aware of the limitations. I don't have a crystal ball, but I guess that in many years, people will read in computer science history books about those 64 bits IEEE 754 numbers, and they will be horrified.
+Software developers know floating point numbers shenanigans, but scientists working with time-series datasets are not always aware of the limitations. I don't have a crystal ball, but I guess that in many years, people will read in computer science history books about those 64 bits IEEE 754 numbers, and they will be horrified.
 
 <span title="I like MacDraw.">!["They're the same number" says the computer.](./same.webp)</span>
 
@@ -187,7 +187,7 @@ A next release of Prometheus, perhaps version 3.0.0, will not have unnecessary p
 It's challenging to precisely estimate the impact of such a fix. I haven't done the extensive real-world survey needed to have precise numbers. We have to guess with a [back of the envelope calculation](https://en.wikipedia.org/wiki/Back-of-the-envelope_calculation).
 
 ![A Blue-Ray disc and a Floppy disc.](./floppy.webp)
-I roughly estimate that the fix saved some big cloud providers the equivalent storage size of one Blue-Ray disc, and most companies the equivalent storage size of one Floppy disc.
+*I roughly estimate that the fix saved some big cloud providers the equivalent storage size of one Blue-Ray disc, and most companies the equivalent storage size of one Floppy disc.*
 
 The bug occurs when both the bit size of the last encoded value to be stored and the number of already stored bits are multiples of 8.
 
