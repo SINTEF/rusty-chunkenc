@@ -91,7 +91,7 @@ Loading the 1234th bit:
 
 |154th byte: |0|1|2|3|4|5|6|7|
 |-|-|-|-|-|-|-|-|-|
-||☯|☯|☯|☯|☯|☯|☯|☯|
+||b|b|b|b|b|b|b|b|
 |||||||⬆|||
 
 In Python, using the rarely used bitwise operators:
@@ -123,10 +123,10 @@ Examples of padding `0` bits at the end of the last octet:
 
 |0|1|2|3|4|5|6|7|
 |-|-|-|-|-|-|-|-|
-|☯|☯|☯|☯|☯|`0`|`0`|`0`|
-|☯|☯|`0`|`0`|`0`|`0`|`0`|`0`|
-|☯|☯|☯|☯|☯|☯|☯|☯|
-|☯|☯|☯|☯|☯|☯|☯|`0`|
+|b|b|b|b|b|`0`|`0`|`0`|
+|b|b|`0`|`0`|`0`|`0`|`0`|`0`|
+|b|b|b|b|b|b|b|b|
+|b|b|b|b|b|b|b|`0`|
 
 ## The Bug
 
@@ -134,7 +134,7 @@ Once in a while, the padding bit size of a Prometheus XOR chunk was 8 bits. Even
 
 |0|1|2|3|4|5|6|7|.|0|1|2|3|4|5|6|7|
 |-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-|☯|☯|☯|☯|☯|☯|☯|☯|.|`0`|`0`|`0`|`0`|`0`|`0`|`0`|`0`|
+|b|b|b|b|b|b|b|b|.|`0`|`0`|`0`|`0`|`0`|`0`|`0`|`0`|
 
 I discovered it because I had an assertion in my parsing code to ensure the padding size was between 0 and 7 bits long. Prometheus' parser ignores the padding and doesn't check its size, so no one noticed the bug until now. The bug wasn't always happening, but it wasn't rare either.
 
