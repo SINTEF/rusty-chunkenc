@@ -527,4 +527,4 @@ This work is conducted within the [Smart Building Hub](https://smartbuildinghub.
 
 ---
 
-Antoine Pultier – 2024-09-24 – SBHub Project.
+Antoine Pultier – 2024-09-24 – [SBHub Project](https://smartbuildinghub.no/).
