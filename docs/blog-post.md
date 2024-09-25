@@ -377,8 +377,6 @@ The number of leading zeros is encoded on 5 bits, allowing between 0 and 31 lead
 
 The number of significant bits is encoded on 6 bits, allowing between 0 and 63 significant bits. However, Prometheus works with 64 bits numbers. One solution would have been to use 7 bits to encode 64, too, but instead, a trick was used: 64 significant bits are serialised as 0. It is confusing but fine because an XOR difference with 0 significant bits would be serialised as "no differences" so the 0 value is reused. Here, nothing is wasted.
 
-The smallest `varbit_xor` is 1 bit long, and the biggest is 72 bits long.
-
 ### Prometheus Disk Format
 
 Prometheus starts its files with `0x85BD40DD`. It's a number used to identify the format of the file. People call it a magic number, but I'm not sure it's magical.
@@ -407,11 +405,11 @@ The chunk size is encoded as a `uvarint`.
 
 The chunk type is a single-byte enumeration serialised like this:
 
-|Type|Binary Value|
-|-|-|
-|XOR|`00000001`|
-|Histogram|`00000002`|
-|Float Histogram|`00000003`|
+|Type|Value|Binary Value|
+|-|-|-|
+|XOR|1|`00000001`|
+|Histogram|2|`00000010`|
+|Float Histogram|3|`00000011`|
 
 A whole byte is likely wasted on this enumeration to keep the data section of the chunk aligned to a byte boundary. As we saw before, working on data aligned to bytes is much easier.
 
