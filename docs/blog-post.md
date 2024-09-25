@@ -17,17 +17,17 @@ I'm building [SensApp, a time-series data platform](https://github.com/SINTEF/se
 
 I already made [SensApp compatible with InfluxDB](https://github.com/SINTEF/sensapp/blob/main/docs/INFLUX_DB.md), a Prometheus competitor, and it's now time to integrate it with Prometheus. I want the users to be able to use their familiar tool, and I don't want to re-implement many Prometheus features if I don't have to.
 
-Prometheus has a [remote read API](https://prometheus.io/docs/prometheus/latest/querying/remote_read_api/) that is perfect for what I need. However, while Prometheus is great, it is written in Go*lang*, and I love another programming language more these days. Be reassured, I'm not trying to preach about <span title="It is Rust.">the other programming language</span>, Go*lang* is fine. However, I need to re-implement some of Prometheus' data formats in my loved programming language.
+Prometheus has a [remote read API](https://prometheus.io/docs/prometheus/latest/querying/remote_read_api/) that is perfect for what I need. However, while Prometheus is great, it is written in Go*lang*, and I love another programming language more these days. Be reassured, I'm not trying to preach about <span title="It is Rust.">the other programming language</span>, Go*lang* is fine. However, I need to re-implement some of Prometheus' data formats in my loved programming language.
 
-## How I Found the Bug
+## How I Found the Bug
 
 This article will discuss `0` and `1` in computers. It's going to be a bit technical, but I hope it's still be understandable by most.
 
 ### The Prometheus Remote Read API Supports an Easy Format
 
-The Prometheus Remote Read API supports two data formats, an easy and a hard one. I implemented them both, the easy one to have a minimum viable product, and the hard one to feel more accomplished. It's also supposedly more efficient because it's Prometheus' native format.
+The Prometheus Remote Read API supports two data formats, an easy and a hard one. I implemented them both, the easy one to have a minimum viable product, and the hard one to feel more accomplished. It's also supposedly more efficient because it's Prometheus' native format.
 
-The easy format in Prometheus remote read API is pretty straightforward: get the [Protocol Buffers](https://developers.google.com/protocol-buffers) [definitions](https://github.com/prometheus/prometheus/blob/c328d5fc8820ec7fe45296cfd4de8036b58f4a3a/prompb/types.proto), quickly and easily implement a serialiser, compress the serialised data with [Snappy](https://github.com/google/snappy), and voila.
+The easy format in Prometheus remote read API is pretty straightforward: get the [Protocol Buffers](https://developers.google.com/protocol-buffers) [definitions](https://github.com/prometheus/prometheus/blob/c328d5fc8820ec7fe45296cfd4de8036b58f4a3a/prompb/types.proto), quickly and easily implement a serialiser, compress the serialised data with [Snappy](https://github.com/google/snappy), and voila.
 
 ### Gorilla's XOR Chunks is a Challenging Format
 
@@ -38,13 +38,13 @@ Gorilla is a database developed by Facebook/Meta that you could read about in th
 Prometheus adopted the Gorilla's XOR chunks, with a few adjustments. Timestamps are measured in milliseconds instead of seconds, for example. In short, XOR chunks exploit that time series are often stable over time and store the data more efficiently for computers. XOR refers to one of the tricks used to store the data efficiently.
 
 ![Hexdump of one Prometheus XOR Chunk](./matrix.webp)
-The format is pretty much unreadable for humans. No one had spotted the unnecessary zeros hiding in plain sight.
+*The format is pretty much unreadable for humans. No one had spotted the unnecessary zeros hiding in plain sight.*
 
-XOR chunks are a bit complicated, to be honest. It's not extreme, but it is the most complex data format I have dealt with so far. However, it's relatively well documented [in Prometheus](https://github.com/prometheus/prometheus/blob/main/tsdb/docs/format/chunks.md), the [research paper](https://www.vldb.org/pvldb/vol8/p1816-teller.pdf), and you can always read the [Prometheus source code](https://github.com/prometheus/prometheus). I read the source code so many times…
+XOR chunks are a bit complicated, to be honest. It's not extreme, but it is the most complex data format I have dealt with so far. However, it's relatively well documented [in Prometheus](https://github.com/prometheus/prometheus/blob/main/tsdb/docs/format/chunks.md), the [research paper](https://www.vldb.org/pvldb/vol8/p1816-teller.pdf), and you can always read the [Prometheus source code](https://github.com/prometheus/prometheus). I read the source code so many times…
 
 ### Variable Length Encodings Save Bits
 
-Usually, people decide in advance how many bits they need to represent their numbers in computers. For example, 8 bits is enough to represent a number between 0 and 255 or -128 and 127. If the software encounters bigger numbers, you go with more bits. The industry uses 64 bits by default for now, representing whole numbers between -9,223,372,036,854,775,808 and 9,223,372,036,854,775,807, or 18 quintillion different numbers. It's often more than enough. Not always.
+Usually, people decide in advance how many bits they need to represent their numbers in computers. For example, 8 bits is enough to represent a number between 0 and 255 or -128 and 127. If the software encounters bigger numbers, you go with more bits. The industry uses 64 bits by default for now, representing whole numbers between -9,223,372,036,854,775,808 and 9,223,372,036,854,775,807, or 18 quintillion different numbers. It's often more than enough. Not always.
 
 Prometheus uses 64 bits numbers internally, but instead of always using 64 bits to store the data, Prometheus also uses variable length encodings. The number of stored bits will depend on the value. Big numbers will use more bits than small numbers. In practice, Prometheus' numbers use much fewer than 64 bits. But it sometimes uses more than 64 bits for the big numbers.
 
@@ -67,13 +67,13 @@ As an example, here is **42** encoded with the various number encoding formats f
 
 ### By the Way, IEEE 754 Floating Point Numbers Are Weird
 
-Computers deal with not only whole numbers but also decimal numbers. Representing decimal numbers with 0 and 1 bits is possible. It used to be a mess as people did represent those numbers differently, but eventually, people and computers adopted the [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754). The wide adoption is a good success story. If you like reading about computer standards, you can [purchase the standard for *only* $106.00](https://standards.ieee.org/ieee/754/6210/). It is not the focus of this article, but it's important to know something: IEEE 754 decimal numbers are **weird**.
+Computers deal with not only whole numbers but also decimal numbers. Representing decimal numbers with 0 and 1 bits is possible. It used to be a mess as people did represent those numbers differently, but eventually, people and computers adopted the [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754). The wide adoption is a good success story. If you like reading about computer standards, you can [purchase the standard for *only* $106.00](https://standards.ieee.org/ieee/754/6210/). It is not the focus of this article, but it's important to know something: IEEE 754 decimal numbers are **weird**.
 
 The approximate maximum value of a 64 bits IEEE 754 number is `1.7976931348623157e308`. It's a huge number, much bigger than `9,223,372,036,854,775,807`, the maximum value of a whole number using the same amount of bits.
 
 The trick is to not care much about correctness. For example, most computers say that [9,007,199,254,740,99**2**.0 equals 9,007,199,254,740,99**3**.0](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER) and it is mostly fine. It's within the specifications of the IEEE 754 standard.
 
-Software developers know [floating point numbers shenanigans](https://stackoverflow.com/questions/21895756/why-are-floating-point-numbers-inaccurate), but scientists working with time-series datasets are not always aware of the limitations. I don't have a crystal ball, but I guess that in many years, people will read in computer science history books about those 64 bits IEEE 754 numbers, and they will be horrified.
+Software developers know [floating point numbers shenanigans](https://stackoverflow.com/questions/21895756/why-are-floating-point-numbers-inaccurate), but scientists working with time-series datasets are not always aware of the limitations. I don't have a crystal ball, but I guess that in many years, people will read in computer science history books about those 64 bits IEEE 754 numbers, and they will be horrified.
 
 <span title="I like MacDraw.">!["They're the same number" says the computer.](./same.webp)</span>
 
@@ -231,7 +231,7 @@ Prometheus didn't pick a side. While it stores most of its numbers using the *ri
 
 `varint` and `uvarint` are number encoding formats not specific to Prometheus. They are coming from the Golang standard `binary/encoding` package. Some [non-Golang specific documentation](https://github.com/multiformats/unsigned-varint) can be found.
 
-A `uvarint` takes a zero or positive number and represents it in binary using 1 to 10 whole octets. In each octet, a byte consisting of 8 bits, the first bit says whether another octet follows. If the first bit is 1, another octet follows. If the first bit is 0, it's the last octet.
+A `uvarint` takes a zero or positive number and represents it in binary using 1 to 10 whole octets. In each octet, a byte consisting of 8 bits, the first bit says whether another octet follows. If the first bit is 1, another octet follows. If the first bit is 0, it's the last octet.
 
 It makes me sad that `uvarint` uses a little-endian representation.
 
@@ -324,7 +324,7 @@ The [`varbit` encoding](https://prometheus.io/blog/2016/05/08/when-to-use-varbit
 |-36028797018963967 to 36028797018963968|`11111110`|56|64|
 |everything else|`11111111`|64|72|
 
-An improvement can be made, though. A bucket can represent numbers that could have fitted in a smaller bucket. For example, nothing prevents storing the value 1 using 72 bits instead of 5. A comment in Prometheus' source code states that around 1% space could be saved by making a more complex format that substracts the minimum value of the bucket before encoding the number. This is deemed too complex for now.
+An improvement can be made, though. A bucket can represent numbers that could have fitted in a smaller bucket. For example, nothing prevents storing the value 1 using 72 bits instead of 5. A comment in Prometheus' source code states that around 1% space could be saved by making a more complex format that substracts the minimum value of the bucket before encoding the number. This is deemed too complex for now.
 
 After fully implementing the varbit format, I realised I didn't need it for my project. It's only used within Prometheus histograms, which I don't plan to use. But at least you can see that Prometheus still has some optimisations on the table.
 
@@ -381,7 +381,7 @@ The number of significant bits is encoded on 6 bits, allowing between 0 and 63 s
 
 Prometheus starts its files with `0x85BD40DD`. It's a number used to identify the format of the file. People call it a magic number, but I'm not sure it's magical.
 
-A single-byte integer follows to specify the file version. Currently, only version 1 exists. It also has 3 bytes of zeros for padding and perhaps for future use.
+A single-byte integer follows to specify the file version. Currently, only version 1 exists. It also has 3 bytes of zeros for padding and perhaps for future use.
 
 Example for Version 1:
 
@@ -426,8 +426,8 @@ A Prometheus XOR chunk consists of:
 |Section|Format|Size|
 |-------|------|----|
 |Number of Samples|Big Endian 16 bits Integer|16 bits|
-|First Sample TimeStamp|`varint`|8 to 80 bits, but usually 48 bits|
-|First Sample Value|IEEE 754 64 bits Float|64 bits|
+|First Sample TimeStamp|`varint`|8 to 80 bits, but usually 48 bits|
+|First Sample Value|IEEE 754 64 bits Float|64 bits|
 |Second Sample TimeStamp Difference|`uvarint`|1 to 10 bits|
 |Second Sample XOR Difference|`varbit_xor`|1 to 72 bits|
 |Third Sample TimeStamp Difference of Difference|`varbit_ts`|1 to 68 bits|
@@ -508,13 +508,13 @@ Thanks to the experience of previous mistakes, I would advise you to care a bit 
 
 As always, SQLite would probably work fine. Any columnar database would likely do great on large datasets. DuckDB, for example, has a cool name. The format Apache Arrow is a safe bet nowadays.
 
-Overall, I think Prometheus is efficient, fast, and successful because it cares about bits, though it has many other qualities. We can see that the minor optimisations have an impact at scale.
+Overall, I think Prometheus is efficient, fast, and successful because it cares about bits, though it has many other qualities. We can see that the minor optimisations have an impact at scale.
 
 ### This Is Possible Because Prometheus Is OpenSource
 
 This would never have happened if Prometheus was a closed-source software. The open-source community is doing a great job with Prometheus, and I'm happy to have contributed a tiny bit to it.
 
-![XKCD #2347 variant](./xkcd.webp)
+![XKCD #2347 variant](./xkcd.webp)
 *[XKCD #2347](https://xkcd.com/2347/) adaptation, CC BY-NC 2.5.*
 
 Damian Gryski wrote the original Golang XOR chunk implementation, and [he commented in the bug fix pull request](https://github.com/prometheus/prometheus/pull/14854#issuecomment-2341429038): "I implemented the original paper in a weekend for fun, more or less."
