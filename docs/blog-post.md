@@ -227,7 +227,7 @@ Still in the early 70s, Intel developed the [Intel 8008](https://en.wikipedia.or
 
 Prometheus didn't pick a side. While it stores most of its numbers using the *right way*, also called big-endianness, it uses little-endianness for a few numbers.
 
-### uvarint is good enough
+### uvarint is Good Enough
 
 `varint` and `uvarint` are number encoding formats not specific to Prometheus. They are coming from the Golang standard `binary/encoding` package. Some [non-Golang specific documentation](https://github.com/multiformats/unsigned-varint) can be found.
 
@@ -249,7 +249,7 @@ Examples of values:
 
 It is not the most compact encoding for big and small numbers, but it's suitable for medium-sized numbers. Prometheus uses this encoding format for likely medium-sized numbers, such as the data size or the number of samples.
 
-### varint, and its zigzag encoding
+### varint, and its Zigzag Encoding
 
 Numbers that can be negative are a bit tricky. Most computers use a two's complement representation to store negative numbers. Without going into details, your computer likely represents the number -1 like this in binary: `1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111`. This is not good. There are way too many significant bits for such a small number.
 
@@ -271,7 +271,7 @@ Example of values:
 
 Prometheus uses this encoding format for numbers with a likely not-so-small negative value.
 
-### Saving the difference of the difference
+### Saving the Difference of the Difference
 
 Instead of storing every timestamp of a time series, Prometheus stores differences and differences of differences.
 
@@ -290,7 +290,7 @@ For example:
 |107|1|-1|-1|`10111111 11111111`|
 |108|1|0|0|`0`|
 
-### varbit_ts encoding
+### varbit_ts Encoding
 
 The `varbit_ts` encoding is a hybrid. It's a variable encoding format that uses fixed length encoding internally. The main logic is to organise numbers in 5 buckets with corresponding fixed-length encoding. Small numbers can be represented using fewer bits. The bucket identifier is serialised as zero to three `1` followed by a `0` or four `1`.
 
@@ -308,7 +308,7 @@ The `varbit_ts` encoding doesn't use any fancy trick to represent negative numbe
 
 The bucket size have been optimised to represent timestamp differences in milliseconds. But you may have noticed, -1 is represented as `10111111 11111111`. It is a bit much for such a small number. The Prometheus source code has a comment stating, "This seems to needlessly jump to large bit sizes even for very small deviations from zero. Timestamp compression can probably benefit from some smaller bit buckets." I think the comment is correct.
 
-### varbit, the better varbit_ts encoding
+### varbit, the Better varbit_ts Encoding
 
 The [`varbit` encoding](https://prometheus.io/blog/2016/05/08/when-to-use-varbit-chunks/#what-is-varbit-encoding) is an improvement over the `varbit_ts` encoding. It uses the same bucket concept but with more and smaller buckets. It is not used everywhere yet, as it would introduce a major change in Prometheus' data format.
 
@@ -328,7 +328,7 @@ An improvement can be made, though. A bucket can represent numbers that could ha
 
 After fully implementing the varbit format, I realised I didn't need it for my project. It's only used within Prometheus histograms, which I don't plan to use. But at least you can see that Prometheus still has some optimisations on the table.
 
-### The XOR trick
+### The XOR Trick
 
 Prometheus doesn't store whole sample values but only the value differences between successive samples. It's done at the bit level using an XOR operation on the binary IEEE 754 representation of the floating point numbers. Using a big-endian representation, thankfully.
 
