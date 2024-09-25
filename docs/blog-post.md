@@ -71,9 +71,9 @@ Computers deal with not only whole numbers but also decimal numbers. Representin
 
 The approximate maximum value of a 64 bits IEEE 754 number is `1.7976931348623157e308`. It's a huge number, much bigger than `9,223,372,036,854,775,807`, the maximum value of a whole number using the same amount of bits.
 
-The trick is to not give a fuck about accuracy. For example, most computers say that [9,007,199,254,740,99**2**.0 equals 9,007,199,254,740,99**3**.0](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER) and it is mostly fine. It's within the specifications of the IEEE 754 standard.
+The trick is to not care much about correctness. For example, most computers say that [9,007,199,254,740,99**2**.0 equals 9,007,199,254,740,99**3**.0](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER) and it is mostly fine. It's within the specifications of the IEEE 754 standard.
 
-Software developers know floating point numbers shenanigans, but scientists working with time-series datasets are not always aware of the limitations. I don't have a crystal ball, but I guess that in many years, people will read in computer science history books about those 64 bits IEEE 754 numbers, and they will be horrified.
+Software developers know [floating point numbers shenanigans](https://stackoverflow.com/questions/21895756/why-are-floating-point-numbers-inaccurate), but scientists working with time-series datasets are not always aware of the limitations. I don't have a crystal ball, but I guess that in many years, people will read in computer science history books about those 64 bits IEEE 754 numbers, and they will be horrified.
 
 <span title="I like MacDraw.">!["They're the same number" says the computer.](./same.webp)</span>
 
@@ -217,13 +217,15 @@ We will not observe behaviour changes for a few kilobytes per Prometheus instanc
 
 This section is more technical and for curious readers who are into bits. Feel free to scroll down to the conclusion.
 
-### The Right Way to Store Numbers, and the Intel Way
+### The Right Endianness, and the Endianness I Dislike
 
-At some point in the late 70s, Intel engineers decided to make a computer that represents numbers in a way I dislike. Bits are split into groups of bits, named bytes, and the order of the groups is reversed, but not the order of the bits inside the groups.
+The [Datapoint 2200](https://en.wikipedia.org/wiki/Datapoint_2200) computer was released in 1970 and it represented numbers in a way I dislike. Bits are split into groups of bits, named bytes, and the order of the groups is reversed, but not the order of the bits inside the groups.
 
-As a decimal example, let's take the number 1234,5678 and groups/bytes of size 4. With the Intel way, this number would be written as 5678,1234. This is called little endianness. It is slightly faster and more convenient for some old computers, but it is challenging for humans to read. The industry somehow got stuck with this. This is still the most common way computers represent numbers today.
+As a decimal example, let's take the number 1234,5678 and groups/bytes of size 4. With the Datapoint 2200 way, this number would be written as 5678,1234. This is called little [endianness](https://en.wikipedia.org/wiki/Endianness). It is more convenient for [some very old computers](https://en.wikipedia.org/wiki/Serial_computer), but it is challenging for humans to read.
 
-Prometheus didn't pick a side. While it stores most of its numbers using the *right way*, also called big-endian, it uses little-endian for some numbers.
+Still in the early 70s, Intel developed the [Intel 8008](https://en.wikipedia.org/wiki/Intel_8008) with a [Datapoint comptability](https://en.wikipedia.org/wiki/Datapoint#Datapoint_2200_and_the_Intel_8008). The industry somehow got stuck with this. This is still the most common way computers represent numbers today.
+
+Prometheus didn't pick a side. While it stores most of its numbers using the *right way*, also called big-endianness, it uses little-endianness for a few numbers.
 
 ### uvarint is good enough
 
