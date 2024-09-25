@@ -502,7 +502,7 @@ This article deeply explored the Prometheus XOR Chunk binary data formats. We al
 
 Software engineers often say "storage is cheap" as an excuse to not care about storage optimisations. Thanks to the cloud, storage is virtually infinite. The limit is your financial wealth in practice. Everyone can now easily store too much time-series data. Optimising storage significantly impacts performance, bills, and the environment in this context.
 
-SensApp used to not care about storage optimisations. It was 2012, Daft Punk <span title="Random Access Memories">was working on a new album</span>, storage was cheap, the MongoDB database was hyped, we thought that [JSON time-series](https://www.rfc-editor.org/rfc/rfc8428) was a suitable storage format. So we stored JSON time-series in MongoDB. It did not scale. It was so slow. We abandoned the project for a decade.
+[SensApp](https://github.com/SINTEF/sensapp) used to not care about storage optimisations. It was 2012, Daft Punk <span title="Random Access Memories">was working on a new album</span>, storage was cheap, the MongoDB database was hyped, we thought that [JSON time-series](https://www.rfc-editor.org/rfc/rfc8428) was a suitable storage format. So we stored JSON time-series in MongoDB. It did not scale. It was so slow. We abandoned the project for a decade.
 
 Thanks to the experience of previous mistakes, I would advise you to care a bit about storage. One doesn't have to optimise to an extreme amount down to the bits level, but it has to be good enough. And there is probably something good enough between NoSQL document databases and super fancy optimised binary formats in bespoke databases.
 
