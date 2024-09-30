@@ -46,6 +46,10 @@ mod tests {
         let (_, value) = read_varint(input).unwrap();
         assert_eq!(value, -128);
 
+        let input = b"\x80\x02";
+        let (_, value) = read_varint(input).unwrap();
+        assert_eq!(value, 128);
+
         let input = b"\xac\x02";
         let (_, value) = read_varint(input).unwrap();
         assert_eq!(value, 150);

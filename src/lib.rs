@@ -94,7 +94,8 @@
 pub mod chunk;
 /// Prometheus chunks disk format.
 pub mod chunks;
-mod crc32c;
+/// CRC32 Castagnoli Checksum.
+pub mod crc32c;
 mod encoder;
 mod errors;
 /// WIP: Parse all prometheus data from the prometheus folder.

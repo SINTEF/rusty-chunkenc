@@ -1,22 +1,26 @@
 use nom::{number::complete::be_u32, IResult};
 
+/// Reads the CRC32 Castagnoli checksum from the input data.
 pub fn read_crc32c(input: &[u8]) -> IResult<&[u8], u32> {
     // Golang serialises the CRC32 as big endian unsigned 32 bits number
     // https://cs.opensource.google/go/go/+/refs/tags/go1.23.0:src/hash/crc32/crc32.go;l=223-228
     be_u32(input)
 }
 
+/// Computes the CRC32 Castagnoli checksum of the input data.
 #[inline]
 pub fn compute_crc32c(input: &[u8]) -> u32 {
     ::crc32c::crc32c(input)
 }
 
+/// Writes the CRC32 Castagnoli checksum of the input data to the writer.
 pub fn write_crc32c<W: std::io::Write>(input: &[u8], writer: &mut W) -> std::io::Result<()> {
     let crc32c = compute_crc32c(input);
     writer.write_all(&crc32c.to_be_bytes())?;
     Ok(())
 }
 
+/// Asserts that the CRC32 Castagnoli checksum of the input data is correct.
 pub fn assert_crc32c_on_data(
     input: &[u8],
     skip_front: usize,
