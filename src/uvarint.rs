@@ -1,4 +1,4 @@
-use nom::{bytes::complete::take, IResult};
+use nom::{bytes::complete::take, IResult, Parser};
 
 pub use crate::encoder::uvarint_encoder::write_uvarint;
 
@@ -9,7 +9,7 @@ pub fn read_uvarint(input: &[u8]) -> IResult<&[u8], u64> {
     let mut s: usize = 0;
 
     for i in 0..10 {
-        let (new_input_pointer, byte_buffer) = take(1usize)(input_pointer)?;
+        let (new_input_pointer, byte_buffer) = take(1usize).parse(input_pointer)?;
         input_pointer = new_input_pointer;
         let byte = byte_buffer[0];
 

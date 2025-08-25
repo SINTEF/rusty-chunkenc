@@ -1,8 +1,8 @@
 use nom::{
-    bits, bytes,
+    bits::bits,
+    bits::bytes,
     number::complete::{be_f64, be_u16},
-    sequence::tuple,
-    IResult,
+    IResult, Parser,
 };
 
 use crate::{
@@ -83,7 +83,7 @@ struct XORWriteIterator {
 }
 
 fn read_first_sample(input: &[u8]) -> IResult<&[u8], XORSample> {
-    let (remaining_input, (timestamp, value)) = tuple((read_varint, be_f64))(input)?;
+    let (remaining_input, (timestamp, value)) = (read_varint, be_f64).parse(input)?;
     Ok((remaining_input, XORSample { timestamp, value }))
 }
 
@@ -95,7 +95,7 @@ fn read_second_sample<'a>(
         let (
             remaining_input,
             (timestamp_delta, (value, new_leading_bits_count, new_trailing_bits_count)),
-        ) = tuple((bytes(read_uvarint), read_varbit_xor(first_value, 0, 0)))(input)?;
+        ) = (bytes(read_uvarint), read_varbit_xor(first_value, 0, 0)).parse(input)?;
 
         let timestamp = first_timestamp
             + i64::try_from(timestamp_delta).map_err(|_| {
@@ -131,14 +131,15 @@ fn read_n_sample<'a>(
         let (
             remaining_input,
             (timestamp_delta_of_delta, (value, new_leading_bits_count, new_trailing_bits_count)),
-        ) = tuple((
+        ) = (
             read_varbit_ts,
             read_varbit_xor(
                 previous_value,
                 previous_leading_bits_count,
                 previous_trailing_bits_count,
             ),
-        ))(input)?;
+        )
+            .parse(input)?;
 
         let timestamp_delta = ((previous_timestamp_delta as i64) + timestamp_delta_of_delta) as u64;
         let timestamp = previous_timestamp + timestamp_delta as i64;
@@ -170,7 +171,7 @@ fn read_following_samples<'a>(
 
         if num_samples > 1 {
             let (remaining_input_bits, iterator) =
-                read_second_sample(first_timestamp, first_value)(input)?;
+                read_second_sample(first_timestamp, first_value).parse(input)?;
 
             samples.push(XORSample {
                 timestamp: iterator.timestamp,
@@ -205,13 +206,15 @@ fn read_following_samples<'a>(
 /// Use the `read_chunk` function if your XOR chunk comes with a header
 /// and a CRC32C checksum.
 pub fn read_xor_chunk_data(input: &[u8]) -> IResult<&[u8], XORChunk> {
-    let (remaining_input, (num_samples, first_sample)) = tuple((be_u16, read_first_sample))(input)?;
+    let (remaining_input, (num_samples, first_sample)) =
+        (be_u16, read_first_sample).parse(input)?;
 
     let (remaining_input, all_samples) = bits(read_following_samples(
         first_sample.timestamp,
         first_sample.value,
         num_samples,
-    ))(remaining_input)?;
+    ))
+    .parse(remaining_input)?;
 
     //println!("all samples: {:?}", all_samples);
     //panic!("stop");

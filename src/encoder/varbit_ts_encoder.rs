@@ -7,22 +7,22 @@ pub fn write_varbit_ts<W: bitstream_io::BitWrite>(
         0 => writer.write_bit(false)?,
         // 1 to 14 bits
         -8191..=8192 => {
-            writer.write_out::<2, u8>(0b10)?;
-            writer.write_out::<14, u64>(value as u64 & 0x3FFF)?;
+            writer.write::<2, u8>(0b10)?;
+            writer.write::<14, u64>(value as u64 & 0x3FFF)?;
         }
         // 15 to 17 bits
         -65535..=65536 => {
-            writer.write_out::<3, u8>(0b110)?;
-            writer.write_out::<17, u64>(value as u64 & 0x1FFFF)?;
+            writer.write::<3, u8>(0b110)?;
+            writer.write::<17, u64>(value as u64 & 0x1FFFF)?;
         }
         // 18 to 20 bits
         -524287..=524288 => {
-            writer.write_out::<4, u8>(0b1110)?;
-            writer.write_out::<20, u64>(value as u64 & 0x0FFFFF)?;
+            writer.write::<4, u8>(0b1110)?;
+            writer.write::<20, u64>(value as u64 & 0x0FFFFF)?;
         }
         _ => {
-            writer.write_out::<4, u8>(0b1111)?;
-            writer.write_out::<64, u64>(value as u64)?;
+            writer.write::<4, u8>(0b1111)?;
+            writer.write::<64, u64>(value as u64)?;
         }
     }
     Ok(())
@@ -42,21 +42,21 @@ mod tests {
 
         let mut test_cases = Vec::with_capacity(128);
         for _ in 0..128 {
-            let vec_size = rng.gen_range(1..129);
+            let vec_size = rng.random_range(1..129);
             let mut vec = Vec::with_capacity(vec_size);
 
-            let mut value: i64 = if rng.gen_bool(0.5) {
-                rng.gen_range(-100000000..1000000)
+            let mut value: i64 = if rng.random_bool(0.5) {
+                rng.random_range(-100000000..1000000)
             } else {
-                rng.gen_range(-10000..10000)
+                rng.random_range(-10000..10000)
             };
             vec.push(value);
 
             for _ in 1..vec_size {
-                if rng.gen_bool(0.33) {
+                if rng.random_bool(0.33) {
                     value += 1;
-                } else if rng.gen_bool(0.33) {
-                    value = rng.gen();
+                } else if rng.random_bool(0.33) {
+                    value = rng.random();
                 }
                 vec.push(value);
             }

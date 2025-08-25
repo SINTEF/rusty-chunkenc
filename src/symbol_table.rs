@@ -1,7 +1,7 @@
 use std::num::NonZeroUsize;
 
 use nom::{
-    bytes::complete::take, multi::length_count, number::complete::be_i32, IResult, InputTake,
+    bytes::complete::take, multi::length_count, number::complete::be_i32, IResult, Input, Parser,
 };
 
 use crate::{
@@ -36,7 +36,7 @@ fn read_symbol(input: &[u8]) -> IResult<&[u8], String> {
 }
 
 fn read_symbols(input: &[u8]) -> IResult<&[u8], Vec<String>> {
-    length_count(read_number_of_symbols, read_symbol)(input)
+    length_count(read_number_of_symbols, read_symbol).parse(input)
 }
 
 pub fn read_symbol_table(input: &[u8]) -> IResult<&[u8], Vec<String>> {

@@ -4,8 +4,7 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     combinator::{consumed, value},
-    sequence::tuple,
-    IResult, InputTake, ToUsize,
+    IResult, Input, Parser, ToUsize,
 };
 
 use crate::{
@@ -88,15 +87,16 @@ impl Chunk {
 
 fn read_chunk_type(input: &[u8]) -> IResult<&[u8], ChunkType> {
     alt((
-        value(ChunkType::XOR, tag([1u8])),
-        value(ChunkType::Histogram, tag([2u8])),
-        value(ChunkType::FloatHistogram, tag([3u8])),
-    ))(input)
+        value(ChunkType::XOR, tag(&[1u8][..])),
+        value(ChunkType::Histogram, tag(&[2u8][..])),
+        value(ChunkType::FloatHistogram, tag(&[3u8][..])),
+    ))
+    .parse(input)
 }
 
 fn read_chunk_header(input: &[u8]) -> IResult<&[u8], ChunkHeader> {
     let (remaining_input, (chunk_size, chunk_type)) =
-        tuple((read_uvarint, read_chunk_type))(input)?;
+        (read_uvarint, read_chunk_type).parse(input)?;
 
     Ok((
         remaining_input,
@@ -140,7 +140,7 @@ pub fn read_chunk(input: &[u8]) -> IResult<&[u8], Chunk> {
     let addr = input.as_ptr();
 
     let (remaining_input, (consumed_header_bytes, chunk_header)) =
-        consumed(read_chunk_header)(input)?;
+        consumed(read_chunk_header).parse(input)?;
 
     // Check if there is enough data to read the chunk, the nom way
     let chunk_size: usize = chunk_header.chunk_size.to_usize();
@@ -176,7 +176,8 @@ pub fn read_chunk(input: &[u8]) -> IResult<&[u8], Chunk> {
     // https://github.com/prometheus/prometheus/pull/14854
     if !remaining_chunk_data_input.is_empty() {
         // The bug is that a whole byte of 0 is used for padding.
-        let (remaining_chunk_data_input, _) = tag([0u8; 1])(remaining_chunk_data_input)?;
+        let (remaining_chunk_data_input, _) =
+            tag(&[0u8; 1][..]).parse(remaining_chunk_data_input)?;
         assert!(remaining_chunk_data_input.is_empty());
     }
 

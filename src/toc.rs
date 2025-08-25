@@ -1,6 +1,6 @@
 use std::num::NonZeroUsize;
 
-use nom::{number::complete::be_u64, sequence::tuple, IResult};
+use nom::{number::complete::be_u64, IResult, Parser};
 
 use crate::crc32c::{assert_crc32c_on_data, read_crc32c};
 
@@ -29,7 +29,7 @@ pub fn read_toc(input: &[u8]) -> IResult<&[u8], IndexTableOfContent> {
             postings_offset_table,
             expected_crc32c,
         ),
-    ) = tuple((be_u64, be_u64, be_u64, be_u64, be_u64, be_u64, read_crc32c))(input)?;
+    ) = (be_u64, be_u64, be_u64, be_u64, be_u64, be_u64, read_crc32c).parse(input)?;
 
     assert_crc32c_on_data(input, 0, TOC_SIZE_WITHOUT_CRC32C, expected_crc32c)?;
 

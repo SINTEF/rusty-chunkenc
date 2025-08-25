@@ -45,7 +45,7 @@ mod tests {
         let mut rng = rand::rngs::StdRng::seed_from_u64(42);
         // Add some random numbers
         for _ in 0..100 {
-            let number: u64 = rng.gen();
+            let number: u64 = rng.random();
             numbers.push(number);
         }
 

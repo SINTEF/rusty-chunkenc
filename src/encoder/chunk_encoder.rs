@@ -73,23 +73,23 @@ mod tests {
 
         let mut test_cases = Vec::with_capacity(count);
         for _ in 0..count {
-            let mut timestamp: i64 = rng.gen_range(1234567890..1357908642);
-            let vec_size = rng.gen_range(1..129);
+            let mut timestamp: i64 = rng.random_range(1234567890..1357908642);
+            let vec_size = rng.random_range(1..129);
             let mut vec = Vec::with_capacity(vec_size);
 
-            let mut value: f64 = if rng.gen_bool(0.5) {
-                rng.gen_range(-100000000.0..1000000.0)
+            let mut value: f64 = if rng.random_bool(0.5) {
+                rng.random_range(-100000000.0..1000000.0)
             } else {
-                rng.gen_range(-10000.0..10000.0)
+                rng.random_range(-10000.0..10000.0)
             };
             vec.push(XORSample { timestamp, value });
 
             for _ in 1..vec_size {
-                timestamp += rng.gen_range(1..30);
-                if rng.gen_bool(0.33) {
+                timestamp += rng.random_range(1..30);
+                if rng.random_bool(0.33) {
                     value += 1.0;
-                } else if rng.gen_bool(0.33) {
-                    value = rng.gen();
+                } else if rng.random_bool(0.33) {
+                    value = rng.random();
                 }
                 vec.push(XORSample { timestamp, value });
             }

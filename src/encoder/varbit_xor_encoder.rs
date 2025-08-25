@@ -33,7 +33,7 @@ pub fn write_varbit_xor<W: bitstream_io::BitWrite>(
         && new_trailing >= previous_trailing_bits_count
     {
         bit_writer.write_bit(false)?;
-        bit_writer.write(
+        bit_writer.write_var(
             64_u32 - (previous_leading_bits_count as u32) - previous_trailing_bits_count as u32,
             delta >> previous_trailing_bits_count,
         )?;
@@ -41,14 +41,14 @@ pub fn write_varbit_xor<W: bitstream_io::BitWrite>(
     }
 
     bit_writer.write_bit(true)?;
-    bit_writer.write(5, new_leading)?;
+    bit_writer.write::<5, u8>(new_leading)?;
     let sigbits = (64_u64 - new_leading as u64) - new_trailing as u64;
     // Overflow 64 to 0 is fine because if 0 sigbits, we would have written a "same number"
     // bit a bit earlier.
     // The reason is that only 6 bits are available, and the maximum value is 63.
     let encoded_sigbits = if sigbits > 63 { 0 } else { sigbits };
-    bit_writer.write(6, encoded_sigbits)?;
-    bit_writer.write(sigbits as u32, delta >> new_trailing)?;
+    bit_writer.write::<6, u64>(encoded_sigbits)?;
+    bit_writer.write_var(sigbits as u32, delta >> new_trailing)?;
 
     Ok((new_leading, new_trailing))
 }
@@ -68,17 +68,17 @@ mod tests {
 
         let mut test_cases = Vec::with_capacity(128);
         for _ in 0..128 {
-            let vec_size = rng.gen_range(1..129);
+            let vec_size = rng.random_range(1..129);
             let mut vec = Vec::with_capacity(vec_size);
 
-            let mut value: f64 = rng.gen();
+            let mut value: f64 = rng.random();
             vec.push(value);
 
             for _ in 1..vec_size {
-                if rng.gen_bool(0.33) {
+                if rng.random_bool(0.33) {
                     value += 1.0;
-                } else if rng.gen_bool(0.33) {
-                    value = rng.gen();
+                } else if rng.random_bool(0.33) {
+                    value = rng.random();
                 }
                 vec.push(value);
             }

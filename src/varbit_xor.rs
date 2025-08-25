@@ -1,6 +1,6 @@
 use nom::{
     bits::complete::{bool, take},
-    IResult,
+    IResult, Parser,
 };
 
 use crate::NomBitInput;
@@ -9,12 +9,12 @@ pub use crate::encoder::varbit_xor_encoder::write_varbit_xor;
 
 fn read_leading_bits_count(input: NomBitInput) -> IResult<NomBitInput, u8> {
     // The leading bits count is 5 bits long.
-    take(5usize)(input)
+    take(5usize).parse(input)
 }
 
 fn read_middle_bits_count(input: NomBitInput) -> IResult<NomBitInput, u8> {
     // The middle bits count is 6 bits long.
-    let (remaining_input, middle_bits_count): (NomBitInput, u8) = take(6usize)(input)?;
+    let (remaining_input, middle_bits_count): (NomBitInput, u8) = take(6usize).parse(input)?;
 
     // As prometheus uses 64 bits floats, the number of middle bits can be up to 64.
     // However, the max value on 6 bits is 63.

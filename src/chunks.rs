@@ -1,4 +1,4 @@
-use nom::{bytes::complete::tag, multi::many1, sequence::tuple, IResult};
+use nom::{bytes::complete::tag, multi::many1, IResult, Parser};
 
 use crate::chunk::{read_chunk, Chunk};
 
@@ -69,11 +69,12 @@ impl PartialEq for ChunksDiskFormat {
 }
 
 fn read_chunks_disk_format(input: &[u8]) -> IResult<&[u8], ChunksDiskFormat> {
-    let (remaining_input, (_, mut chunks_disk_format)) = tuple((
+    let (remaining_input, (_, mut chunks_disk_format)) = (
         // Chunks on disk start with 0x85BD40DD
-        tag([0x85, 0xBD, 0x40, 0xDD]),
+        tag(&[0x85, 0xBD, 0x40, 0xDD][..]),
         read_version_one,
-    ))(input)?;
+    )
+        .parse(input)?;
 
     chunks_disk_format.set_addr(input.as_ptr());
 
@@ -81,14 +82,15 @@ fn read_chunks_disk_format(input: &[u8]) -> IResult<&[u8], ChunksDiskFormat> {
 }
 
 fn read_version_one(input: &[u8]) -> IResult<&[u8], ChunksDiskFormat> {
-    let (remaining_input, (_, _, chunks)) = tuple((
+    let (remaining_input, (_, _, chunks)) = (
         // Read the version byte, that is 1
-        tag([1u8]),
+        tag(&[1u8][..]),
         // 3 bytes of 0 for padding
-        tag([0u8; 3]),
+        tag(&[0u8; 3][..]),
         // Chunks follow each other
         many1(read_chunk),
-    ))(input)?;
+    )
+        .parse(input)?;
 
     Ok((
         remaining_input,

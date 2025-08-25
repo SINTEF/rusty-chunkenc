@@ -1,6 +1,6 @@
 use std::num::NonZeroUsize;
 
-use nom::{branch::alt, bytes::complete::tag, sequence::tuple, IResult};
+use nom::{branch::alt, bytes::complete::tag, IResult, Parser};
 
 use crate::{
     errors::RustyChunkEncError,
@@ -27,11 +27,12 @@ impl IndexDiskFormat {
 static HEADER_LENGTH: usize = 5;
 
 pub fn read_index_disk_format(input: &[u8]) -> IResult<&[u8], IndexDiskFormat> {
-    let (remaining_input, (_, index_disk_format)) = tuple((
+    let (remaining_input, (_, index_disk_format)) = (
         // Index on disk start with 0xBA AA D7 00
-        tag([0xBA, 0xAA, 0xD7, 0x00]),
+        tag(&[0xBA, 0xAA, 0xD7, 0x00][..]),
         alt((read_version_one, read_version_two)),
-    ))(input)?;
+    )
+        .parse(input)?;
 
     Ok((remaining_input, index_disk_format))
 }
@@ -92,14 +93,14 @@ fn read_simple_sections(input: &[u8]) -> IResult<&[u8], IndexDiskFormat> {
 
 pub fn read_version_one(input: &[u8]) -> IResult<&[u8], IndexDiskFormat> {
     let (remaining_input, (_, index_disk_format)) =
-        tuple((tag([1u8]), read_simple_sections))(input)?;
+        (tag(&[1u8][..]), read_simple_sections).parse(input)?;
 
     Ok((remaining_input, index_disk_format))
 }
 
 pub fn read_version_two(input: &[u8]) -> IResult<&[u8], IndexDiskFormat> {
     let (remaining_input, (_, index_disk_format)) =
-        tuple((tag([2u8]), read_simple_sections))(input)?;
+        (tag(&[2u8][..]), read_simple_sections).parse(input)?;
 
     Ok((remaining_input, index_disk_format))
 }

@@ -4,8 +4,7 @@ use nom::{
     bytes::complete::take,
     combinator::{consumed, map},
     multi::many_m_n,
-    sequence::tuple,
-    IResult,
+    IResult, Parser,
 };
 
 use crate::{
@@ -97,14 +96,14 @@ fn read_series_labels(input: &[u8]) -> IResult<&[u8], Vec<SerieLabel>> {
     let (remaining_input, labels) = many_m_n(
         len as usize,
         len as usize,
-        map(
-            tuple((read_uvarint, read_uvarint)),
-            |(name_ref, value_ref)| SerieLabel {
+        map((read_uvarint, read_uvarint), |(name_ref, value_ref)| {
+            SerieLabel {
                 name_ref: name_ref as u32,
                 value_ref: value_ref as u32,
-            },
-        ),
-    )(remaining_input)?;
+            }
+        }),
+    )
+    .parse(remaining_input)?;
     Ok((remaining_input, labels))
 }
 
@@ -114,14 +113,15 @@ fn read_series_chunks(input: &[u8]) -> IResult<&[u8], Vec<SerieChunk>> {
         len as usize,
         len as usize,
         map(
-            tuple((read_varint, read_uvarint, read_uvarint)),
+            (read_varint, read_uvarint, read_uvarint),
             |(mint, maxt, data_ref)| SerieChunk {
                 mint,
                 maxt: (maxt as i64) + mint,
                 data_ref,
             },
         ),
-    )(remaining_input)?;
+    )
+    .parse(remaining_input)?;
 
     for i in 1..chunks.len() {
         chunks[i].mint += chunks[i - 1].maxt;
@@ -136,12 +136,13 @@ pub fn read_serie(input: &[u8]) -> IResult<&[u8], SerieTmp> {
     let (
         remaining_input,
         ((consumed_serie_len, serie_len), serie_labels, serie_chunks, expected_crc32c),
-    ) = tuple((
+    ) = (
         consumed(read_uvarint),
         read_series_labels,
         read_series_chunks,
         read_crc32c,
-    ))(input)?;
+    )
+        .parse(input)?;
 
     assert_crc32c_on_data(
         input,
