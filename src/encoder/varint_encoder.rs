@@ -13,7 +13,7 @@ pub fn write_varint<W: std::io::Write>(value: i64, writer: &mut W) -> std::io::R
 #[cfg(test)]
 mod tests {
     use crate::varint::read_varint;
-    use rand::{Rng, SeedableRng};
+    use rand::{RngExt, SeedableRng};
 
     use super::*;
 

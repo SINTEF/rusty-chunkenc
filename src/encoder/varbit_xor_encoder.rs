@@ -61,7 +61,7 @@ mod tests {
 
     use super::*;
     use bitstream_io::{BigEndian, BitWrite, BitWriter};
-    use rand::{Rng, SeedableRng};
+    use rand::{RngExt, SeedableRng};
 
     fn generate_random_test_data(seed: u64) -> Vec<Vec<f64>> {
         let mut rng = rand::rngs::StdRng::seed_from_u64(seed);

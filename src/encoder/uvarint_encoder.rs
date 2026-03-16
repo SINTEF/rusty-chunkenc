@@ -13,7 +13,7 @@ pub fn write_uvarint<W: std::io::Write>(value: u64, writer: &mut W) -> std::io::
 #[cfg(test)]
 mod tests {
     use crate::uvarint::read_uvarint;
-    use rand::{Rng, SeedableRng};
+    use rand::{RngExt, SeedableRng};
 
     use super::*;
 

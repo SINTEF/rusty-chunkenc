@@ -150,7 +150,7 @@ mod tests {
     use crate::xor::read_xor_chunk_data;
 
     use super::*;
-    use rand::{Rng, SeedableRng};
+    use rand::{RngExt, SeedableRng};
 
     fn generate_random_test_data(seed: u64) -> Vec<Vec<XORSample>> {
         let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
